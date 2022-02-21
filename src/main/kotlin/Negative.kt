@@ -16,7 +16,7 @@ fun main(args: Array<String>) {
     }
     val image: BufferedImage = ImageIO.read(inputFile)
     negateColours(image)
-    ImageIO.write(image, "png", outputFile)
+    ImageIO.write(image, inputFile.extension, outputFile)
 }
 
 fun negateColours(image: BufferedImage) {
