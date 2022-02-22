@@ -11,7 +11,7 @@ const val OUTPUT_FILE_NAME = "src/test/resources/img-negative.png" // taken from
 const val INPUT_FILE_NAME = "src/test/resources/img.png"
 const val RESULT_FILE_NAME = "src/test/resources/img-result.png"
 
-internal class NegativeKtTest {
+internal class MainKtTest {
 
     @ParameterizedTest
     @MethodSource("invalidCLArgFactory")
@@ -25,9 +25,10 @@ internal class NegativeKtTest {
         assertThrows<IOException> { main(args) }
     }
 
-    @Test
-    fun `Test main with valid args, not testing negation` () {
-        main(arrayOf("-in", INPUT_FILE_NAME, "-out", RESULT_FILE_NAME))
+    @ParameterizedTest
+    @MethodSource("functionNameFactory")
+    fun `Test functions with valid args` (functionName: String) {
+        main(arrayOf(functionName, INPUT_FILE_NAME, RESULT_FILE_NAME))
         File(RESULT_FILE_NAME)
         File(RESULT_FILE_NAME).delete()
     }
@@ -50,21 +51,26 @@ internal class NegativeKtTest {
         fun invalidCLArgFactory(): Array<Arguments> {
             return arrayOf(
                 Arguments.arguments(emptyArray<String>()),
-                Arguments.arguments(arrayOf("-in")),
-                Arguments.arguments(arrayOf("-out")),
-                Arguments.arguments(arrayOf("-in", "-out")),
-                Arguments.arguments(arrayOf("-in", "file", "-out"))
+                Arguments.arguments(arrayOf("")),
+                Arguments.arguments(arrayOf("one")),
+                Arguments.arguments(arrayOf("one", "two")),
+                Arguments.arguments(arrayOf("one", "two", "three"))
             )
         }
 
         @JvmStatic
         fun invalidFileArgFactory(): Array<Arguments> {
             return arrayOf(
-                Arguments.arguments(arrayOf("-in", "file", "-out", "src/test/resources/img.png")),
+                Arguments.arguments(arrayOf("--no-op", "file", "src/test/resources/img.png")),
                 // also throws FileNotFoundException, can't manage to encase it in try/catch block though, dunno why
-                Arguments.arguments(arrayOf("-in", "src/test/resources/img.png", "-out", "")),
-                Arguments.arguments(arrayOf("-in", "", "-out", "src/test/resources/img.png"))
+                Arguments.arguments(arrayOf("--no-op", "src/test/resources/img.png", "")),
+                Arguments.arguments(arrayOf("--no-op", "", "src/test/resources/img.png"))
             )
+        }
+
+        @JvmStatic
+        fun functionNameFactory(): Array<String> {
+            return arrayOf("--no-op", "--negative")
         }
     }
 }

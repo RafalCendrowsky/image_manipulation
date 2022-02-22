@@ -6,16 +6,20 @@ import javax.imageio.ImageIO
 fun main(args: Array<String>) {
     val inputFile: File
     val outputFile: File
+    var function: (BufferedImage) -> Unit = {}
     try {
-        val inputFileName = args[args.indexOf("-in") + 1]
-        val outputFileName = args[args.indexOf("-out") + 1]
-        inputFile = File(inputFileName)
-        outputFile = File(outputFileName)
+        function = when (args[0]) {
+            "--negative" -> ::negateColours
+            "--no-op" -> { _ ->  }
+            else -> throw IllegalArgumentException("Invalid argument for function")
+        }
+        inputFile = File(args[1])
+        outputFile = File(args[2])
     } catch (e: IndexOutOfBoundsException) {
         throw IllegalArgumentException("Invalid command line argument(s)")
     }
     val image: BufferedImage = ImageIO.read(inputFile)
-    negateColours(image)
+    function(image)
     ImageIO.write(image, inputFile.extension, outputFile)
 }
 
