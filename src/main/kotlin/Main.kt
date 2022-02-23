@@ -10,13 +10,14 @@ import kotlin.math.sqrt
 fun main(args: Array<String>) {
     val inputFile: File
     val outputFile: File
-    var function: (BufferedImage) -> Unit = {}
+    val function: (BufferedImage) -> Unit
     try {
         function = when (args[0]) {
             "--negative" -> ::negateColours
             "--energy" -> ::generateImageEnergy
             "--no-op" -> { _ ->  }
-            "--seam" -> ::generateSeam
+            "--seam-v" -> ::generateVerticalSeam
+            "--seam-h" -> ::generateHorizontalSeam
             else -> throw IllegalArgumentException("Invalid argument for function")
         }
         inputFile = File(args[1])
@@ -38,11 +39,13 @@ fun negateColours(image: BufferedImage) {
     }
 }
 
-fun generateSeam(image: BufferedImage, vertical: Boolean = true) {
-    val seamArray = getSeamPathArray(image)
+fun generateVerticalSeam(image: BufferedImage, modify: Boolean = true): Array<Int> {
+    val seamArray = getVerticalSeamPathArray(image)
     val lastRowIndex = seamArray.size - 1
-    var x = seamArray[lastRowIndex].indexOf(seamArray[lastRowIndex].minOrNull())
-    image.setRGB(x, lastRowIndex, Color.red.rgb)
+    var x = seamArray[lastRowIndex].indexOf(seamArray[lastRowIndex].minOrNull()) // smallest element in last row
+    val smallestSeamArray = Array(seamArray.size) { 0 }
+    if (modify) image.setRGB(x, lastRowIndex, Color.red.rgb)
+    smallestSeamArray[lastRowIndex] = x
     for (y in lastRowIndex downTo 1) {
         var smallestIndex = x
         if (x != 0) {
@@ -52,17 +55,56 @@ fun generateSeam(image: BufferedImage, vertical: Boolean = true) {
             smallestIndex = if (seamArray[y-1][smallestIndex] > seamArray[y-1][x+1]) x + 1 else smallestIndex
         }
         x = smallestIndex
-        image.setRGB(x, y - 1, Color.red.rgb)
+        if (modify) image.setRGB(x, y - 1, Color.red.rgb)
+        smallestSeamArray[y-1] = x
     }
+    return smallestSeamArray
 }
 
-private fun getSeamPathArray(image: BufferedImage): Array<Array<Double>>{
+fun generateHorizontalSeam(image: BufferedImage, modify: Boolean = true): Array<Int> {
+    val seamArray = getHorizontalSeamPathArray(image)
+    val lastColIndex = seamArray[0].size - 1
+    val lastColumnArray = Array(seamArray.size) { seamArray[it][seamArray[it].size - 1]}
+    var y = lastColumnArray.indexOf(lastColumnArray.minOrNull()) // smallest element in last col
+    val smallestSeamArray = Array(seamArray[0].size) { 0 }
+    if (modify) image.setRGB(lastColIndex, y, Color.red.rgb)
+    smallestSeamArray[lastColIndex] = y
+    for (x in lastColIndex downTo 1) {
+        var smallestIndex = y
+        if (y != 0) {
+            smallestIndex = if (seamArray[smallestIndex][x-1] > seamArray[y-1][x-1]) y - 1 else smallestIndex
+        }
+        if (y != seamArray.size - 1) {
+            smallestIndex = if (seamArray[smallestIndex][x-1] > seamArray[y+1][x-1]) y + 1 else smallestIndex
+        }
+        y = smallestIndex
+        if (modify) image.setRGB(x - 1, y, Color.red.rgb)
+        smallestSeamArray[x-1] = y
+    }
+    smallestSeamArray.forEach {  print("$it ") }
+    return smallestSeamArray
+}
+
+private fun getVerticalSeamPathArray(image: BufferedImage): Array<Array<Double>>  {
     val intensityArray = generateImageEnergy(image, false)
     for (y in 1 until intensityArray.size) {
         for (x in 0 until intensityArray[y].size) {
-            var smallest = intensityArray[y - 1][x]
+            var smallest = intensityArray[y - 1][x] // x,y-1 or x-1,y
             if (x != 0) smallest = min(smallest, intensityArray[y - 1][x - 1])
             if (x != intensityArray[y].size - 1) smallest = min(smallest, intensityArray[y - 1][x + 1])
+            intensityArray[y][x] += smallest
+        }
+    }
+    return intensityArray
+}
+
+private fun getHorizontalSeamPathArray(image: BufferedImage): Array<Array<Double>> {
+    val intensityArray = generateImageEnergy(image, false)
+    for (x in 1 until intensityArray[0].size) {
+        for (y in intensityArray.indices) {
+            var smallest = intensityArray[y][x - 1] // x,y-1 or x-1,y
+            if (y != 0) smallest = min(smallest, intensityArray[y - 1][x - 1])
+            if (y != intensityArray.size - 1) smallest = min(smallest, intensityArray[y + 1][x - 1])
             intensityArray[y][x] += smallest
         }
     }

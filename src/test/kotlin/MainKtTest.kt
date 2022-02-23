@@ -3,7 +3,9 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.ValueSource
 import java.awt.Color
+import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
@@ -28,7 +30,7 @@ internal class MainKtTest {
     }
 
     @ParameterizedTest
-    @MethodSource("functionNameFactory")
+    @ValueSource(strings = ["--no-op", "--energy", "--seam-v", "--seam-h", "--negative"])
     fun `Test functions with valid args` (functionName: String) {
         main(arrayOf(functionName, INPUT_FILE_NAME, RESULT_FILE_NAME))
         File(RESULT_FILE_NAME)
@@ -58,18 +60,24 @@ internal class MainKtTest {
 
     @ParameterizedTest
     @MethodSource("pixelCoordinateImageFactory")
-    fun `Test image energy`(x: Int, y: Int, energy: Int) {
-        val image = ImageIO.read(File(INPUT_FILE_NAME))
-        generateImageEnergy(image)
+    fun `Test image energy`(x: Int, y: Int, energy: Int, image: BufferedImage) {
         assert(image.getRGB(x, y) == Color(energy, energy, energy).rgb)
     }
 
     @Test
     fun `Test vertical seam`() {
         val image = ImageIO.read(File(INPUT_FILE_NAME))
-        generateSeam(image)
-        assert(image.getRGB(8, 3) == Color.red.rgb)
-        assert(image.getRGB(9, 6) == Color.red.rgb)
+        val seamArray = generateVerticalSeam(image, false)
+        val resultArray = arrayOf(6,7,7,8,8,8,9,8,9,10) // picture is small enough that it's possible to enumerate the pixels
+        seamArray.indices.forEach {assert(seamArray[it] == resultArray[it])}
+    }
+
+    @Test
+    fun `Test horizontal seam`() {
+        val image = ImageIO.read(File(INPUT_FILE_NAME))
+        val seamArray = generateHorizontalSeam(image, false)
+        val resultArray = arrayOf(7,7,8,8,9,9,8,7,8,9,9,9,8,8,8) // again, small enough that it's possible to enumerate the pixels
+        seamArray.indices.forEach {assert(seamArray[it] == resultArray[it])}
     }
 
     companion object {
@@ -93,11 +101,6 @@ internal class MainKtTest {
         }
 
         @JvmStatic
-        fun functionNameFactory(): Array<String> {
-            return arrayOf("--no-op", "--negative", "--seam", "--energy")
-        }
-
-        @JvmStatic
         fun pixelCoordinateFactory(): Array<Arguments> {
             return arrayOf(
                 Arguments.arguments(6, 0, 12),
@@ -108,12 +111,13 @@ internal class MainKtTest {
 
         @JvmStatic
         fun pixelCoordinateImageFactory(): Array<Arguments> {
+            val image = ImageIO.read(File(INPUT_FILE_NAME))
+            generateImageEnergy(image)
             return arrayOf(
-                Arguments.arguments(6, 0, 8),
-                Arguments.arguments(2, 3, 11),
-                Arguments.arguments(9, 6, 59)
+                Arguments.arguments(6, 0, 8, image),
+                Arguments.arguments(2, 3, 11, image),
+                Arguments.arguments(9, 6, 59, image)
             )
-
         }
     }
 }
