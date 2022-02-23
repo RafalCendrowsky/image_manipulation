@@ -94,6 +94,13 @@ internal class MainKtTest {
         seamArray.indices.forEach {assert(seamArray[it] == resultArray[it])}
     }
 
+    @Test
+    fun `Test seam carve`() {
+        var image = ImageIO.read(File(INPUT_FILE_NAME))
+        image = resizeImage(image, 5, 5)
+        assert(image.height == 5 && image.width == 10)
+    }
+
     companion object {
         @JvmStatic
         fun invalidCLArgFactory(): Array<Arguments> {
