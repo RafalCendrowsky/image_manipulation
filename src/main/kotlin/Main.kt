@@ -23,7 +23,7 @@ fun main(args: Array<String>) {
                 resize = true
                 val width = args[3].toInt()
                 val height = args[4].toInt()
-                function = { imageResize(it, width, height) }
+                function = { resizeImage(it, width, height) }
             }
             else -> throw IllegalArgumentException("Invalid argument for function")
         }
@@ -41,14 +41,14 @@ fun main(args: Array<String>) {
     ImageIO.write(image, inputFile.extension, outputFile)
 }
 
-fun imageResize(image: BufferedImage, width: Int, height: Int): BufferedImage {
+fun resizeImage(image: BufferedImage, width: Int, height: Int): BufferedImage {
     var mutableImage = image
-    mutableImage = verticalResize(mutableImage, height)
-    mutableImage = horizontalResize(mutableImage, width)
+    mutableImage = resizeVertical(mutableImage, height)
+    mutableImage = resizeHorizontal(mutableImage, width)
     return mutableImage
 }
 
-fun verticalResize(image: BufferedImage, height: Int): BufferedImage{
+fun resizeVertical(image: BufferedImage, height: Int): BufferedImage{
     var mutableImage = image
     while (mutableImage.height > image.height - height && mutableImage.height > 3) {
         val seamArray = generateHorizontalSeam(mutableImage)
@@ -68,7 +68,7 @@ fun verticalResize(image: BufferedImage, height: Int): BufferedImage{
     return mutableImage
 }
 
-fun horizontalResize(image: BufferedImage, width: Int): BufferedImage {
+fun resizeHorizontal(image: BufferedImage, width: Int): BufferedImage {
     var mutableImage = image
     while (mutableImage.width > image.width - width && mutableImage.width > 3) {
         val seamArray = generateVerticalSeam(mutableImage)
