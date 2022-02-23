@@ -81,7 +81,7 @@ fun generateImageEnergy(image: BufferedImage, modify: Boolean = true): Array<Arr
     for (y in 0 until image.height) {
         for (x in 0 until image.width) {
             val intensityDouble = (255.0 * energyArray[y][x] / maxEnergy)
-            val intensity = intensityDouble.toInt()
+            val intensity = round(intensityDouble).toInt()
             if(modify) image.setRGB(x, y, Color(intensity, intensity, intensity).rgb)
             energyArray[y][x] = intensityDouble
         }
@@ -89,7 +89,7 @@ fun generateImageEnergy(image: BufferedImage, modify: Boolean = true): Array<Arr
     return energyArray
 }
 
-private fun getPixelEnergy(image: BufferedImage, x: Int, y: Int): Double {
+fun getPixelEnergy(image: BufferedImage, x: Int, y: Int): Double {
     val shiftedX = when (x) {
         0 -> 1
         image.width - 1 -> x - 1

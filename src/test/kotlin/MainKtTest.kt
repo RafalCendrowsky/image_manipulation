@@ -3,9 +3,11 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
+import java.awt.Color
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
+import kotlin.test.assertEquals
 
 const val OUTPUT_FILE_NAME = "src/test/resources/img-negative.png" // taken from a generic image negation tool
 const val INPUT_FILE_NAME = "src/test/resources/img.png"
@@ -46,6 +48,30 @@ internal class MainKtTest {
         assert(true)
     }
 
+    @ParameterizedTest
+    @MethodSource("pixelCoordinateFactory")
+    fun `Test pixel energy`(x: Int, y: Int, energy: Double) {
+        val image = ImageIO.read(File(INPUT_FILE_NAME))
+        assertEquals(getPixelEnergy(image, x, y), energy, 0.5)
+
+    }
+
+    @ParameterizedTest
+    @MethodSource("pixelCoordinateImageFactory")
+    fun `Test image energy`(x: Int, y: Int, energy: Int) {
+        val image = ImageIO.read(File(INPUT_FILE_NAME))
+        generateImageEnergy(image)
+        assert(image.getRGB(x, y) == Color(energy, energy, energy).rgb)
+    }
+
+    @Test
+    fun `Test vertical seam`() {
+        val image = ImageIO.read(File(INPUT_FILE_NAME))
+        generateSeam(image)
+        assert(image.getRGB(8, 3) == Color.red.rgb)
+        assert(image.getRGB(9, 6) == Color.red.rgb)
+    }
+
     companion object {
         @JvmStatic
         fun invalidCLArgFactory(): Array<Arguments> {
@@ -62,15 +88,32 @@ internal class MainKtTest {
         fun invalidFileArgFactory(): Array<Arguments> {
             return arrayOf(
                 Arguments.arguments(arrayOf("--no-op", "file", "src/test/resources/img.png")),
-                // also throws FileNotFoundException, can't manage to encase it in try/catch block though, dunno why
-                Arguments.arguments(arrayOf("--no-op", "src/test/resources/img.png", "")),
                 Arguments.arguments(arrayOf("--no-op", "", "src/test/resources/img.png"))
             )
         }
 
         @JvmStatic
         fun functionNameFactory(): Array<String> {
-            return arrayOf("--no-op", "--negative")
+            return arrayOf("--no-op", "--negative", "--seam", "--energy")
+        }
+
+        @JvmStatic
+        fun pixelCoordinateFactory(): Array<Arguments> {
+            return arrayOf(
+                Arguments.arguments(6, 0, 12),
+                Arguments.arguments(2, 3, 16),
+                Arguments.arguments(9, 6, 85)
+            )
+        }
+
+        @JvmStatic
+        fun pixelCoordinateImageFactory(): Array<Arguments> {
+            return arrayOf(
+                Arguments.arguments(6, 0, 8),
+                Arguments.arguments(2, 3, 11),
+                Arguments.arguments(9, 6, 59)
+            )
+
         }
     }
 }
