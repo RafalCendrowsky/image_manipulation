@@ -9,6 +9,7 @@ import java.awt.image.BufferedImage
 import java.io.File
 import java.io.IOException
 import javax.imageio.ImageIO
+import kotlin.test.AfterTest
 import kotlin.test.assertEquals
 
 const val OUTPUT_FILE_NAME = "src/test/resources/img-negative.png" // taken from a generic image negation tool
@@ -16,6 +17,11 @@ const val INPUT_FILE_NAME = "src/test/resources/img.png"
 const val RESULT_FILE_NAME = "src/test/resources/img-result.png"
 
 internal class MainKtTest {
+
+    @AfterTest
+    fun deleteFile() {
+        File(RESULT_FILE_NAME).delete()
+    }
 
     @ParameterizedTest
     @MethodSource("invalidCLArgFactory")
@@ -33,8 +39,16 @@ internal class MainKtTest {
     @ValueSource(strings = ["--no-op", "--energy", "--seam-v", "--seam-h", "--negative"])
     fun `Test functions with valid args` (functionName: String) {
         main(arrayOf(functionName, INPUT_FILE_NAME, RESULT_FILE_NAME))
-        File(RESULT_FILE_NAME)
-        File(RESULT_FILE_NAME).delete()
+    }
+
+    @Test
+    fun `Test valid args for seam carve`() {
+        main(arrayOf("--seam-c", INPUT_FILE_NAME, RESULT_FILE_NAME, "2", "2"))
+    }
+
+    @Test
+    fun `Test for invalid args for seam carve height or width`() {
+        main(arrayOf("--seam-c", INPUT_FILE_NAME, RESULT_FILE_NAME, "200", "200"))
     }
 
     @Test
@@ -88,7 +102,10 @@ internal class MainKtTest {
                 Arguments.arguments(arrayOf("")),
                 Arguments.arguments(arrayOf("one")),
                 Arguments.arguments(arrayOf("one", "two")),
-                Arguments.arguments(arrayOf("one", "two", "three"))
+                Arguments.arguments(arrayOf("one", "two", "three")),
+                Arguments.arguments(arrayOf("--seam-c", "src/test/resources/img.png", "src/test/resources/img.png")),
+                Arguments.arguments(arrayOf("--seam-c", "src/test/resources/img.png", "src/test/resources/img.png", "4")),
+                Arguments.arguments(arrayOf("--seam-c", "src/test/resources/img.png", "src/test/resources/img.png", "4", "a"))
             )
         }
 
@@ -96,7 +113,7 @@ internal class MainKtTest {
         fun invalidFileArgFactory(): Array<Arguments> {
             return arrayOf(
                 Arguments.arguments(arrayOf("--no-op", "file", "src/test/resources/img.png")),
-                Arguments.arguments(arrayOf("--no-op", "", "src/test/resources/img.png"))
+                Arguments.arguments(arrayOf("--no-op", "", "src/test/resources/img.png")),
             )
         }
 

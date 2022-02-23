@@ -10,24 +10,82 @@ import kotlin.math.sqrt
 fun main(args: Array<String>) {
     val inputFile: File
     val outputFile: File
-    val function: (BufferedImage) -> Unit
+    val function: (BufferedImage) -> Any
+    var resize = false
     try {
-        function = when (args[0]) {
-            "--negative" -> ::negateColours
-            "--energy" -> ::generateImageEnergy
-            "--no-op" -> { _ ->  }
-            "--seam-v" -> ::generateVerticalSeam
-            "--seam-h" -> ::generateHorizontalSeam
+        when (args[0]) {
+            "--negative" -> function = ::negateColours
+            "--energy" -> function = { generateImageEnergy(it) }
+            "--no-op" -> function = { _ ->  }
+            "--seam-v" -> function = { generateVerticalSeam(it) }
+            "--seam-h" -> function = { generateHorizontalSeam(it) }
+            "--seam-c" -> {
+                resize = true
+                val width = args[3].toInt()
+                val height = args[4].toInt()
+                function = { imageResize(it, width, height) }
+            }
             else -> throw IllegalArgumentException("Invalid argument for function")
         }
         inputFile = File(args[1])
         outputFile = File(args[2])
-    } catch (e: IndexOutOfBoundsException) {
+    } catch (e: Exception) {
         throw IllegalArgumentException("Invalid command line argument(s)")
     }
-    val image: BufferedImage = ImageIO.read(inputFile)
-    function(image)
+    var image: BufferedImage = ImageIO.read(inputFile)
+    if (resize) {
+        image = function(image) as BufferedImage
+    } else {
+        function(image)
+    }
     ImageIO.write(image, inputFile.extension, outputFile)
+}
+
+fun imageResize(image: BufferedImage, width: Int, height: Int): BufferedImage {
+    var mutableImage = image
+    mutableImage = verticalResize(mutableImage, height)
+    mutableImage = horizontalResize(mutableImage, width)
+    return mutableImage
+}
+
+fun verticalResize(image: BufferedImage, height: Int): BufferedImage{
+    var mutableImage = image
+    while (mutableImage.height > image.height - height && mutableImage.height > 3) {
+        val seamArray = generateHorizontalSeam(mutableImage)
+        val newImage = BufferedImage(mutableImage.width, mutableImage.height - 1, BufferedImage.TYPE_INT_ARGB)
+        for (x in 0 until mutableImage.width) {
+            var shift = 0
+            for (y in 0 until mutableImage.height) {
+                if (seamArray[x] == y) {
+                    shift = 1
+                    continue
+                }
+                newImage.setRGB(x, y - shift, mutableImage.getRGB(x, y))
+            }
+        }
+        mutableImage = newImage
+    }
+    return mutableImage
+}
+
+fun horizontalResize(image: BufferedImage, width: Int): BufferedImage {
+    var mutableImage = image
+    while (mutableImage.width > image.width - width && mutableImage.width > 3) {
+        val seamArray = generateVerticalSeam(mutableImage)
+        val newImage = BufferedImage(mutableImage.width - 1, mutableImage.height, BufferedImage.TYPE_INT_RGB)
+        for (y in 0 until mutableImage.height) {
+            var shift = 0
+            for (x in 0 until mutableImage.width) {
+                if (seamArray[y] == x) {
+                    shift = 1
+                    continue
+                }
+                newImage.setRGB(x - shift, y, mutableImage.getRGB(x, y))
+            }
+        }
+        mutableImage = newImage
+    }
+    return mutableImage
 }
 
 fun negateColours(image: BufferedImage) {
@@ -81,7 +139,6 @@ fun generateHorizontalSeam(image: BufferedImage, modify: Boolean = true): Array<
         if (modify) image.setRGB(x - 1, y, Color.red.rgb)
         smallestSeamArray[x-1] = y
     }
-    smallestSeamArray.forEach {  print("$it ") }
     return smallestSeamArray
 }
 
