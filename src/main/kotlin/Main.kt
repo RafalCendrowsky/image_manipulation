@@ -29,8 +29,10 @@ fun main(args: Array<String>) {
         }
         inputFile = File(args[1])
         outputFile = File(args[2])
-    } catch (e: Exception) {
+    } catch (e: IndexOutOfBoundsException) {
         throw IllegalArgumentException("Invalid command line argument(s)")
+    } catch (e: NumberFormatException) {
+        throw IllegalArgumentException("Invalid argument for width or height")
     }
     var image: BufferedImage = ImageIO.read(inputFile)
     if (resize) {
