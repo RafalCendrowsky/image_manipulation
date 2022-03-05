@@ -30,7 +30,7 @@ fun main(args: Array<String>) {
         inputFile = File(args[1])
         outputFile = File(args[2])
     } catch (e: IndexOutOfBoundsException) {
-        throw IllegalArgumentException("Invalid command line argument(s)")
+        throw IllegalArgumentException("Invalid command line argument count")
     } catch (e: NumberFormatException) {
         throw IllegalArgumentException("Invalid argument for width or height")
     }
