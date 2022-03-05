@@ -161,7 +161,7 @@ private fun getHorizontalSeamPathArray(image: BufferedImage): Array<Array<Double
     val intensityArray = generateImageEnergy(image, false)
     for (x in 1 until intensityArray[0].size) {
         for (y in intensityArray.indices) {
-            var smallest = intensityArray[y][x - 1] // x,y-1 or x-1,y
+            var smallest = intensityArray[y][x - 1]
             if (y != 0) smallest = min(smallest, intensityArray[y - 1][x - 1])
             if (y != intensityArray.size - 1) smallest = min(smallest, intensityArray[y + 1][x - 1])
             intensityArray[y][x] += smallest
