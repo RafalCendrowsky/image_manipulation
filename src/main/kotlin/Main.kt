@@ -148,7 +148,7 @@ private fun getVerticalSeamPathArray(image: BufferedImage): Array<Array<Double>>
     val intensityArray = generateImageEnergy(image, false)
     for (y in 1 until intensityArray.size) {
         for (x in 0 until intensityArray[y].size) {
-            var smallest = intensityArray[y - 1][x] // x,y-1 or x-1,y
+            var smallest = intensityArray[y - 1][x]
             if (x != 0) smallest = min(smallest, intensityArray[y - 1][x - 1])
             if (x != intensityArray[y].size - 1) smallest = min(smallest, intensityArray[y - 1][x + 1])
             intensityArray[y][x] += smallest
