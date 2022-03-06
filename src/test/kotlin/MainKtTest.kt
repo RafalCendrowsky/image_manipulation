@@ -24,13 +24,13 @@ internal class MainKtTest {
     }
 
     @ParameterizedTest
-    @MethodSource("invalidCLArgFactory")
+    @MethodSource("invalidCLArgSource")
     fun `Test main with invalid command line args`(args: Array<String>) {
         assertThrows<IllegalArgumentException> { main(args) }
     }
 
     @ParameterizedTest
-    @MethodSource("invalidFileArgFactory")
+    @MethodSource("invalidFileArgSource")
     fun `Test main with invalid file args` (args: Array<String>) {
         assertThrows<IOException> { main(args) }
     }
@@ -65,7 +65,7 @@ internal class MainKtTest {
     }
 
     @ParameterizedTest
-    @MethodSource("pixelCoordinateFactory")
+    @MethodSource("pixelCoordinateSource")
     fun `Test pixel energy`(x: Int, y: Int, energy: Double) {
         val image = ImageIO.read(File(INPUT_FILE_NAME))
         assertEquals(getPixelEnergy(image, x, y), energy, 0.5)
@@ -73,7 +73,7 @@ internal class MainKtTest {
     }
 
     @ParameterizedTest
-    @MethodSource("pixelCoordinateImageFactory")
+    @MethodSource("pixelCoordinateImageSource")
     fun `Test image energy`(x: Int, y: Int, energy: Int, image: BufferedImage) {
         assert(image.getRGB(x, y) == Color(energy, energy, energy).rgb)
     }
@@ -103,7 +103,7 @@ internal class MainKtTest {
 
     companion object {
         @JvmStatic
-        fun invalidCLArgFactory(): Array<Arguments> {
+        fun invalidCLArgSource(): Array<Arguments> {
             return arrayOf(
                 Arguments.arguments(emptyArray<String>()),
                 Arguments.arguments(arrayOf("")),
@@ -117,7 +117,7 @@ internal class MainKtTest {
         }
 
         @JvmStatic
-        fun invalidFileArgFactory(): Array<Arguments> {
+        fun invalidFileArgSource(): Array<Arguments> {
             return arrayOf(
                 Arguments.arguments(arrayOf("--no-op", "file", "src/test/resources/img.png")),
                 Arguments.arguments(arrayOf("--no-op", "", "src/test/resources/img.png")),
@@ -125,7 +125,7 @@ internal class MainKtTest {
         }
 
         @JvmStatic
-        fun pixelCoordinateFactory(): Array<Arguments> {
+        fun pixelCoordinateSource(): Array<Arguments> {
             return arrayOf(
                 Arguments.arguments(6, 0, 12),
                 Arguments.arguments(2, 3, 16),
@@ -134,7 +134,7 @@ internal class MainKtTest {
         }
 
         @JvmStatic
-        fun pixelCoordinateImageFactory(): Array<Arguments> {
+        fun pixelCoordinateImageSource(): Array<Arguments> {
             val image = ImageIO.read(File(INPUT_FILE_NAME))
             generateImageEnergy(image)
             return arrayOf(
